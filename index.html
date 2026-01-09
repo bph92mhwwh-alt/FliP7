@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>FLIP 7 – Classement</title>
+  <style>
+    body {
+      background: radial-gradient(circle, #1b002b, #000);
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #ff2fd6;
+      text-shadow: 0 0 15px #ff2fd6;
+      margin-bottom: 20px;
+    }
+
+    input, select, button {
+      padding: 10px;
+      margin: 5px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+    }
+
+    button {
+      cursor: pointer;
+      background: #7b2cff;
+      color: white;
+      box-shadow: 0 0 10px #7b2cff;
+    }
+
+    button:hover { background: #ff2fd6; }
+
+    .undo { background: #ffaa00; }
+    .reset { background: #ff0033; }
+    .flip7 { background: #00e5ff; }
+
+    table {
+      margin: auto;
+      width: 60%;
+      border-collapse: collapse;
+      margin-top: 25px;
+    }
+
+    th, td {
+      border-bottom: 1px solid #555;
+      padding: 10px;
+    }
+
+    th { color: #7b2cff; }
+
+    tr:nth-child(1) {
+      background: rgba(255, 47, 214, 0.3);
+      font-weight: bold;
+    }
+
+    /* OVERLAY FLIP 7 */
+    #flipOverlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle, #ff2fd6, #000);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 999;
+    }
+
+    #flipOverlay h2 {
+      font-size: 100px;
+      margin: 0;
+      text-shadow: 0 0 30px #fff;
+      animation: pulse 1s infinite;
+    }
+
+    #flipOverlay p {
+      font-size: 50px;
+      margin-top: 20px;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>🔥 FLIP 7 – CLASSEMENT 🔥</h1>
+
+<div>
+  <input type="text" id="playerName" placeholder="Nom du joueur">
+  <button onclick="addPlayer()">Ajouter joueur</button>
+</div>
+
+<div>
+  <select id="playerSelect"></select>
+  <input type="number" id="points" placeholder="Points">
+  <button onclick="addPoints()">Valider points</button>
+</div>
+
+<div>
+  <button class="flip7" onclick="triggerFlip7()">🔥 FLIP 7</button>
+  <button class="undo" onclick="undo()">↩ Retour</button>
+  <button class="reset" onclick="resetAll()">⛔ Réinitialiser</button>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Rang</th>
+      <th>Joueur</th>
+      <th>Points</th>
+    </tr>
+  </thead>
+  <tbody id="ranking"></tbody>
+</table>
+
+<div id="flipOverlay" onclick="closeFlip7()">
+  <h2>FLIP 7</h2>
+  <p id="flipPlayer"></p>
+  <small>(cliquer pour revenir)</small>
+</div>
+
+<script>
+  let players = [];
+  let history = [];
+
+  /* ===== SAUVEGARDE ===== */
+  function saveData() {
+    localStorage.setItem("flip7_players", JSON.stringify(players));
+    localStorage.setItem("flip7_history", JSON.stringify(history));
+  }
+
+  function loadData() {
+    const savedPlayers = localStorage.getItem("flip7_players");
+    const savedHistory = localStorage.getItem("flip7_history");
+
+    if (savedPlayers) players = JSON.parse(savedPlayers);
+    if (savedHistory) history = JSON.parse(savedHistory);
+
+    update();
+  }
+
+  /* ===== LOGIQUE JEU ===== */
+  function addPlayer() {
+    const name = document.getElementById("playerName").value.trim();
+    if (!name) return;
+
+    history.push(JSON.parse(JSON.stringify(players)));
+    players.push({ name, points: 0 });
+
+    document.getElementById("playerName").value = "";
+    saveData();
+    update();
+  }
+
+  function addPoints() {
+    const index = document.getElementById("playerSelect").value;
+    const pts = parseInt(document.getElementById("points").value);
+    if (isNaN(pts)) return;
+
+    history.push(JSON.parse(JSON.stringify(players)));
+    players[index].points += pts;
+
+    document.getElementById("points").value = "";
+    saveData();
+    update();
+  }
+
+  function update() {
+    players.sort((a, b) => b.points - a.points);
+
+    const ranking = document.getElementById("ranking");
+    ranking.innerHTML = "";
+
+    players.forEach((p, i) => {
+      ranking.innerHTML += `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${p.name}</td>
+          <td>${p.points}</td>
+        </tr>
+      `;
+    });
+
+    updateSelect();
+  }
+
+  function updateSelect() {
+    const select = document.getElementById("playerSelect");
+    select.innerHTML = "";
+
+    players.forEach((p, i) => {
+      select.innerHTML += `<option value="${i}">${p.name}</option>`;
+    });
+  }
+
+  function undo() {
+    if (history.length === 0) return;
+    players = history.pop();
+    saveData();
+    update();
+  }
+
+  function resetAll() {
+    if (!confirm("Réinitialiser tout le classement ?")) return;
+    players = [];
+    history = [];
+    localStorage.clear();
+    update();
+  }
+
+  function triggerFlip7() {
+    const index = document.getElementById("playerSelect").value;
+    if (index === "") return;
+
+    document.getElementById("flipPlayer").textContent = players[index].name;
+    document.getElementById("flipOverlay").style.display = "flex";
+  }
+
+  function closeFlip7() {
+    document.getElementById("flipOverlay").style.display = "none";
+  }
+
+  /* ===== CHARGEMENT AUTO ===== */
+  window.onload = loadData;
+</script>
+
+</body>
+</html>
