@@ -1,237 +1,214 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>FLIP 7 – Classement</title>
-  <style>
-    body {
-      background: radial-gradient(circle, #1b002b, #000);
-      color: #fff;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 20px;
-    }
+<meta charset="UTF-8">
+<title>FLIP 7 – Classement</title>
 
-    h1 {
-      color: #ff2fd6;
-      text-shadow: 0 0 15px #ff2fd6;
-      margin-bottom: 20px;
-    }
+<style>
+:root {
+  --bleu-clair: #6EC6E9;
+  --bleu-fonce: #1E88B5;
+  --jaune: #FFD84D;
+  --blanc: #ffffff;
+  --gris-clair: #f4f7fb;
+}
 
-    input, select, button {
-      padding: 10px;
-      margin: 5px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: none;
-    }
+body {
+  margin: 0;
+  font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
+  background: linear-gradient(135deg, var(--bleu-clair), #B3E5FC);
+  color: #033;
+}
 
-    button {
-      cursor: pointer;
-      background: #7b2cff;
-      color: white;
-      box-shadow: 0 0 10px #7b2cff;
-    }
+h1 {
+  text-align: center;
+  margin: 20px 0;
+  font-size: 3em;
+  color: var(--blanc);
+  text-shadow: 2px 2px var(--bleu-fonce);
+}
 
-    button:hover { background: #ff2fd6; }
+.container {
+  max-width: 900px;
+  margin: auto;
+  background: var(--gris-clair);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
 
-    .undo { background: #ffaa00; }
-    .reset { background: #ff0033; }
-    .flip7 { background: #00e5ff; }
+input, select {
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  margin: 5px;
+  font-size: 1em;
+}
 
-    table {
-      margin: auto;
-      width: 60%;
-      border-collapse: collapse;
-      margin-top: 25px;
-    }
+button {
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: none;
+  background: var(--bleu-fonce);
+  color: white;
+  font-size: 1em;
+  cursor: pointer;
+  margin: 5px;
+  box-shadow: 0 4px 0 #0d5f85;
+}
 
-    th, td {
-      border-bottom: 1px solid #555;
-      padding: 10px;
-    }
+button:hover {
+  transform: translateY(-2px);
+}
 
-    th { color: #7b2cff; }
+button:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
 
-    tr:nth-child(1) {
-      background: rgba(255, 47, 214, 0.3);
-      font-weight: bold;
-    }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
 
-    /* OVERLAY FLIP 7 */
-    #flipOverlay {
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(circle, #ff2fd6, #000);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      z-index: 999;
-    }
+th {
+  background: var(--bleu-fonce);
+  color: white;
+  padding: 12px;
+}
 
-    #flipOverlay h2 {
-      font-size: 100px;
-      margin: 0;
-      text-shadow: 0 0 30px #fff;
-      animation: pulse 1s infinite;
-    }
+td {
+  background: white;
+  padding: 10px;
+  text-align: center;
+  font-size: 1.1em;
+}
 
-    #flipOverlay p {
-      font-size: 50px;
-      margin-top: 20px;
-    }
+tr:nth-child(1) td {
+  background: var(--jaune);
+  font-weight: bold;
+}
 
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
-    }
-  </style>
+.flip7-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle, var(--jaune), var(--bleu-clair));
+  z-index: 999;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  font-size: 4em;
+  color: #033;
+}
+
+.flip7-overlay span {
+  font-size: 1.5em;
+}
+</style>
 </head>
 
 <body>
 
-<h1>🔥 FLIP 7 – CLASSEMENT 🔥</h1>
+<h1>FLIP 7</h1>
 
-<div>
-  <input type="text" id="playerName" placeholder="Nom du joueur">
-  <button onclick="addPlayer()">Ajouter joueur</button>
-</div>
+<div class="container">
 
-<div>
+  <h2>Ajouter un joueur</h2>
+  <input id="playerName" placeholder="Nom du joueur">
+  <button onclick="addPlayer()">Ajouter</button>
+
+  <h2>Ajouter des points</h2>
   <select id="playerSelect"></select>
   <input type="number" id="points" placeholder="Points">
-  <button onclick="addPoints()">Valider points</button>
+  <button onclick="addPoints()">Valider</button>
+
+  <h2>Classement</h2>
+  <table>
+    <thead>
+      <tr><th>Rang</th><th>Joueur</th><th>Points</th></tr>
+    </thead>
+    <tbody id="ranking"></tbody>
+  </table>
+
+  <h2>Actions</h2>
+  <button onclick="showFlip7()">FLIP 7</button>
+  <button onclick="undo()">Retour arrière</button>
+  <button onclick="resetGame()">Réinitialiser</button>
+
 </div>
 
-<div>
-  <button class="flip7" onclick="triggerFlip7()">🔥 FLIP 7</button>
-  <button class="undo" onclick="undo()">↩ Retour</button>
-  <button class="reset" onclick="resetAll()">⛔ Réinitialiser</button>
-</div>
-
-<table>
-  <thead>
-    <tr>
-      <th>Rang</th>
-      <th>Joueur</th>
-      <th>Points</th>
-    </tr>
-  </thead>
-  <tbody id="ranking"></tbody>
-</table>
-
-<div id="flipOverlay" onclick="closeFlip7()">
-  <h2>FLIP 7</h2>
-  <p id="flipPlayer"></p>
-  <small>(cliquer pour revenir)</small>
+<div class="flip7-overlay" id="flip7">
+  FLIP 7
+  <span id="flip7Player"></span>
 </div>
 
 <script>
-  let players = [];
-  let history = [];
+let players = JSON.parse(localStorage.getItem("players")) || [];
+let history = [];
 
-  /* ===== SAUVEGARDE ===== */
-  function saveData() {
-    localStorage.setItem("flip7_players", JSON.stringify(players));
-    localStorage.setItem("flip7_history", JSON.stringify(history));
-  }
+function save() {
+  localStorage.setItem("players", JSON.stringify(players));
+}
 
-  function loadData() {
-    const savedPlayers = localStorage.getItem("flip7_players");
-    const savedHistory = localStorage.getItem("flip7_history");
+function updateUI() {
+  players.sort((a,b)=>b.points-a.points);
+  const tbody = document.getElementById("ranking");
+  const select = document.getElementById("playerSelect");
+  tbody.innerHTML = "";
+  select.innerHTML = "";
 
-    if (savedPlayers) players = JSON.parse(savedPlayers);
-    if (savedHistory) history = JSON.parse(savedHistory);
+  players.forEach((p,i)=>{
+    tbody.innerHTML += `<tr><td>${i+1}</td><td>${p.name}</td><td>${p.points}</td></tr>`;
+    select.innerHTML += `<option value="${p.name}">${p.name}</option>`;
+  });
 
-    update();
-  }
+  save();
+}
 
-  /* ===== LOGIQUE JEU ===== */
-  function addPlayer() {
-    const name = document.getElementById("playerName").value.trim();
-    if (!name) return;
+function addPlayer() {
+  const name = playerName.value.trim();
+  if(!name) return;
+  players.push({name, points:0});
+  history.push(JSON.stringify(players));
+  playerName.value="";
+  updateUI();
+}
 
-    history.push(JSON.parse(JSON.stringify(players)));
-    players.push({ name, points: 0 });
+function addPoints() {
+  const name = playerSelect.value;
+  const pts = parseInt(points.value);
+  if(isNaN(pts)) return;
+  history.push(JSON.stringify(players));
+  players.find(p=>p.name===name).points += pts;
+  points.value="";
+  updateUI();
+}
 
-    document.getElementById("playerName").value = "";
-    saveData();
-    update();
-  }
+function undo() {
+  if(history.length===0) return;
+  players = JSON.parse(history.pop());
+  updateUI();
+}
 
-  function addPoints() {
-    const index = document.getElementById("playerSelect").value;
-    const pts = parseInt(document.getElementById("points").value);
-    if (isNaN(pts)) return;
+function resetGame() {
+  if(!confirm("Réinitialiser le jeu ?")) return;
+  players = [];
+  history = [];
+  save();
+  updateUI();
+}
 
-    history.push(JSON.parse(JSON.stringify(players)));
-    players[index].points += pts;
+function showFlip7() {
+  const name = playerSelect.value;
+  document.getElementById("flip7Player").innerText = name;
+  const o = document.getElementById("flip7");
+  o.style.display="flex";
+  setTimeout(()=>o.style.display="none",3000);
+}
 
-    document.getElementById("points").value = "";
-    saveData();
-    update();
-  }
-
-  function update() {
-    players.sort((a, b) => b.points - a.points);
-
-    const ranking = document.getElementById("ranking");
-    ranking.innerHTML = "";
-
-    players.forEach((p, i) => {
-      ranking.innerHTML += `
-        <tr>
-          <td>${i + 1}</td>
-          <td>${p.name}</td>
-          <td>${p.points}</td>
-        </tr>
-      `;
-    });
-
-    updateSelect();
-  }
-
-  function updateSelect() {
-    const select = document.getElementById("playerSelect");
-    select.innerHTML = "";
-
-    players.forEach((p, i) => {
-      select.innerHTML += `<option value="${i}">${p.name}</option>`;
-    });
-  }
-
-  function undo() {
-    if (history.length === 0) return;
-    players = history.pop();
-    saveData();
-    update();
-  }
-
-  function resetAll() {
-    if (!confirm("Réinitialiser tout le classement ?")) return;
-    players = [];
-    history = [];
-    localStorage.clear();
-    update();
-  }
-
-  function triggerFlip7() {
-    const index = document.getElementById("playerSelect").value;
-    if (index === "") return;
-
-    document.getElementById("flipPlayer").textContent = players[index].name;
-    document.getElementById("flipOverlay").style.display = "flex";
-  }
-
-  function closeFlip7() {
-    document.getElementById("flipOverlay").style.display = "none";
-  }
-
-  /* ===== CHARGEMENT AUTO ===== */
-  window.onload = loadData;
+updateUI();
 </script>
 
 </body>
