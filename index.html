@@ -90,6 +90,20 @@ tr:nth-child(1) td {
   font-weight: bold;
 }
 
+/* ---------- MODE TV ---------- */
+body.tv #controls {
+  display: none;
+}
+
+body.tv h1 {
+  font-size: 4em;
+}
+
+body.tv table {
+  font-size: 1.6em;
+}
+
+/* ---------- FLIP 7 OVERLAY ---------- */
 .flip7-overlay {
   display: none;
   position: fixed;
@@ -113,7 +127,7 @@ tr:nth-child(1) td {
 
 <h1>FLIP 7</h1>
 
-<div class="container">
+<div class="container" id="controls">
 
   <h2>Ajouter un joueur</h2>
   <input id="playerName" placeholder="Nom du joueur">
@@ -127,7 +141,11 @@ tr:nth-child(1) td {
   <h2>Classement</h2>
   <table>
     <thead>
-      <tr><th>Rang</th><th>Joueur</th><th>Points</th></tr>
+      <tr>
+        <th>Rang</th>
+        <th>Joueur</th>
+        <th>Points</th>
+      </tr>
     </thead>
     <tbody id="ranking"></tbody>
   </table>
@@ -170,8 +188,8 @@ function updateUI() {
 function addPlayer() {
   const name = playerName.value.trim();
   if(!name) return;
-  players.push({name, points:0});
   history.push(JSON.stringify(players));
+  players.push({name, points:0});
   playerName.value="";
   updateUI();
 }
@@ -197,15 +215,32 @@ function resetGame() {
   players = [];
   history = [];
   save();
-  updateUI(); 
+  updateUI();
 }
 
+/* ---------- FLIP 7 (+93 points) ---------- */
 function showFlip7() {
   const name = playerSelect.value;
+  if (!name) return;
+
+  history.push(JSON.stringify(players));
+  const player = players.find(p => p.name === name);
+  player.points += 93;
+
   document.getElementById("flip7Player").innerText = name;
-  const o = document.getElementById("flip7");
-  o.style.display="flex";
-  setTimeout(()=>o.style.display="none",3000);
+  const overlay = document.getElementById("flip7");
+  overlay.style.display = "flex";
+
+  updateUI();
+
+  setTimeout(() => {
+    overlay.style.display = "none";
+  }, 3000);
+}
+
+/* ---------- MODE TV ---------- */
+if (window.location.search.includes("tv")) {
+  document.body.classList.add("tv");
 }
 
 updateUI();
