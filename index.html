@@ -15,7 +15,7 @@
 
 body {
   margin: 0;
-  font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
+  font-family: Arial, sans-serif;
   background: linear-gradient(135deg, var(--bleu-clair), #B3E5FC);
   color: #033;
 }
@@ -24,8 +24,7 @@ h1 {
   text-align: center;
   margin: 20px 0;
   font-size: 3em;
-  color: var(--blanc);
-  text-shadow: 2px 2px var(--bleu-fonce);
+  color: white;
 }
 
 .container {
@@ -34,31 +33,12 @@ h1 {
   background: var(--gris-clair);
   border-radius: 20px;
   padding: 20px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
 }
 
-input, select {
+button, input, select {
   padding: 10px;
-  border-radius: 10px;
-  border: none;
   margin: 5px;
-  font-size: 1em;
 }
-
-button {
-  padding: 12px 18px;
-  border-radius: 12px;
-  border: none;
-  background: var(--bleu-fonce);
-  color: white;
-  font-size: 1em;
-  cursor: pointer;
-  margin: 5px;
-  box-shadow: 0 4px 0 #0d5f85;
-}
-
-button:hover { transform: translateY(-2px); }
-button:active { transform: translateY(2px); box-shadow: none; }
 
 table {
   width: 100%;
@@ -69,14 +49,13 @@ table {
 th {
   background: var(--bleu-fonce);
   color: white;
-  padding: 12px;
+  padding: 10px;
 }
 
 td {
   background: white;
   padding: 10px;
   text-align: center;
-  font-size: 1.1em;
 }
 
 tr:nth-child(1) td {
@@ -84,12 +63,12 @@ tr:nth-child(1) td {
   font-weight: bold;
 }
 
-/* ===== MODE TV ===== */
+/* MODE TV */
 body.tv #controls { display: none; }
 body.tv h1 { font-size: 4em; }
 body.tv table { font-size: 1.6em; }
 
-/* ===== FLIP 7 OVERLAY ===== */
+/* FLIP 7 */
 .flip7-overlay {
   display: none;
   position: fixed;
@@ -100,9 +79,7 @@ body.tv table { font-size: 1.6em; }
   justify-content: center;
   flex-direction: column;
   font-size: 4em;
-  color: #033;
 }
-.flip7-overlay span { font-size: 1.5em; }
 </style>
 </head>
 
@@ -111,125 +88,89 @@ body.tv table { font-size: 1.6em; }
 <h1>FLIP 7</h1>
 
 <div class="container" id="controls">
-
-  <h2>Ajouter un joueur</h2>
   <input id="playerName" placeholder="Nom du joueur">
-  <button onclick="addPlayer()">Ajouter</button>
+  <button onclick="addPlayer()">Ajouter joueur</button>
 
-  <h2>Ajouter des points</h2>
   <select id="playerSelect"></select>
   <input type="number" id="points" placeholder="Points">
-  <button onclick="addPoints()">Valider</button>
+  <button onclick="addPoints()">Ajouter points</button>
 
-  <h2>Classement</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Rang</th>
-        <th>Joueur</th>
-        <th>Points</th>
-      </tr>
-    </thead>
-    <tbody id="ranking"></tbody>
-  </table>
-
-  <h2>Actions</h2>
   <button onclick="showFlip7()">FLIP 7</button>
-  <button onclick="undo()">Retour arrière</button>
-  <button onclick="resetGame()">Réinitialiser</button>
 </div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Rang</th>
+      <th>Joueur</th>
+      <th>Points</th>
+    </tr>
+  </thead>
+  <tbody id="ranking"></tbody>
+</table>
 
 <div class="flip7-overlay" id="flip7">
   FLIP 7
-  <span id="flip7Player"></span>
+  <div id="flip7Player"></div>
 </div>
 
 <script>
+const isTV = window.location.search.includes("tv");
 let players = JSON.parse(localStorage.getItem("players")) || [];
-let history = [];
 
-function save() {
-  localStorage.setItem("players", JSON.stringify(players));
-}
-
-function updateUI() {
-  players.sort((a,b)=>b.points-a.points);
+/* ===== RENDER ===== */
+function render() {
   const tbody = document.getElementById("ranking");
   const select = document.getElementById("playerSelect");
   tbody.innerHTML = "";
-  select.innerHTML = "";
+  if (select) select.innerHTML = "";
+
+  players.sort((a,b)=>b.points-a.points);
 
   players.forEach((p,i)=>{
     tbody.innerHTML += `<tr><td>${i+1}</td><td>${p.name}</td><td>${p.points}</td></tr>`;
-    select.innerHTML += `<option value="${p.name}">${p.name}</option>`;
+    if (select) select.innerHTML += `<option>${p.name}</option>`;
   });
-
-  save();
 }
 
+/* ===== SAVE (UNIQUEMENT ANIMATEUR) ===== */
+function save() {
+  if (!isTV) {
+    localStorage.setItem("players", JSON.stringify(players));
+  }
+}
+
+/* ===== ACTIONS ===== */
 function addPlayer() {
-  const name = playerName.value.trim();
-  if(!name) return;
-  history.push(JSON.stringify(players));
-  players.push({name, points:0});
-  playerName.value="";
-  updateUI();
+  players.push({name: playerName.value, points:0});
+  save(); render();
 }
 
 function addPoints() {
-  const name = playerSelect.value;
-  const pts = parseInt(points.value);
-  if(isNaN(pts)) return;
-  history.push(JSON.stringify(players));
-  players.find(p=>p.name===name).points += pts;
-  points.value="";
-  updateUI();
+  const p = players.find(x=>x.name===playerSelect.value);
+  p.points += parseInt(points.value);
+  save(); render();
 }
 
-function undo() {
-  if(history.length===0) return;
-  players = JSON.parse(history.pop());
-  updateUI();
-}
-
-function resetGame() {
-  if(!confirm("Réinitialiser le jeu ?")) return;
-  players = [];
-  history = [];
-  save();
-  updateUI();
-}
-
-/* ===== FLIP 7 (+93 points) ===== */
 function showFlip7() {
-  const name = playerSelect.value;
-  if (!name) return;
+  const p = players.find(x=>x.name===playerSelect.value);
+  p.points += 93;
+  save(); render();
 
-  history.push(JSON.stringify(players));
-  const player = players.find(p => p.name === name);
-  player.points += 93;
-
-  document.getElementById("flip7Player").innerText = name;
-  const overlay = document.getElementById("flip7");
-  overlay.style.display = "flex";
-
-  updateUI();
-
-  setTimeout(() => overlay.style.display = "none", 3000);
+  flip7Player.innerText = p.name;
+  flip7.style.display = "flex";
+  setTimeout(()=>flip7.style.display="none",3000);
 }
 
-/* ===== MODE TV ===== */
-if (window.location.search.includes("tv")) {
-  document.body.classList.add("tv");
-}
-
-/* ===== SYNCHRO AUTOMATIQUE ORDI ⇄ TV ===== */
+/* ===== SYNC TV ===== */
 window.addEventListener("storage", () => {
   players = JSON.parse(localStorage.getItem("players")) || [];
-  updateUI();
+  render();
 });
 
-updateUI();
+/* ===== INIT ===== */
+if (isTV) document.body.classList.add("tv");
+render();
 </script>
 
 </body>
