@@ -9,7 +9,6 @@
   --bleu-clair: #6EC6E9;
   --bleu-fonce: #1E88B5;
   --jaune: #FFD84D;
-  --blanc: #ffffff;
   --gris-clair: #f4f7fb;
 }
 
@@ -38,6 +37,7 @@ h1 {
 button, input, select {
   padding: 10px;
   margin: 5px;
+  font-size: 1em;
 }
 
 table {
@@ -91,11 +91,16 @@ body.tv table { font-size: 1.6em; }
   <input id="playerName" placeholder="Nom du joueur">
   <button onclick="addPlayer()">Ajouter joueur</button>
 
+  <br>
+
   <select id="playerSelect"></select>
   <input type="number" id="points" placeholder="Points">
   <button onclick="addPoints()">Ajouter points</button>
 
+  <br><br>
+
   <button onclick="showFlip7()">FLIP 7</button>
+  <button onclick="resetGame()">Réinitialiser</button>
 </div>
 
 <table>
@@ -118,7 +123,7 @@ body.tv table { font-size: 1.6em; }
 const isTV = window.location.search.includes("tv");
 let players = JSON.parse(localStorage.getItem("players")) || [];
 
-/* ===== RENDER ===== */
+/* ===== AFFICHAGE ===== */
 function render() {
   const tbody = document.getElementById("ranking");
   const select = document.getElementById("playerSelect");
@@ -133,7 +138,7 @@ function render() {
   });
 }
 
-/* ===== SAVE (UNIQUEMENT ANIMATEUR) ===== */
+/* ===== SAUVEGARDE (animateur seulement) ===== */
 function save() {
   if (!isTV) {
     localStorage.setItem("players", JSON.stringify(players));
@@ -142,24 +147,37 @@ function save() {
 
 /* ===== ACTIONS ===== */
 function addPlayer() {
-  players.push({name: playerName.value, points:0});
+  if (!playerName.value.trim()) return;
+  players.push({name: playerName.value.trim(), points:0});
+  playerName.value = "";
   save(); render();
 }
 
 function addPoints() {
   const p = players.find(x=>x.name===playerSelect.value);
+  if (!p || isNaN(points.value)) return;
   p.points += parseInt(points.value);
+  points.value = "";
   save(); render();
 }
 
 function showFlip7() {
   const p = players.find(x=>x.name===playerSelect.value);
+  if (!p) return;
+
   p.points += 93;
   save(); render();
 
   flip7Player.innerText = p.name;
   flip7.style.display = "flex";
   setTimeout(()=>flip7.style.display="none",3000);
+}
+
+function resetGame() {
+  if (!confirm("⚠️ Réinitialiser tout le classement ?")) return;
+  players = [];
+  localStorage.removeItem("players");
+  render();
 }
 
 /* ===== SYNC TV ===== */
