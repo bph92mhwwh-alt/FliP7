@@ -57,14 +57,8 @@ button {
   box-shadow: 0 4px 0 #0d5f85;
 }
 
-button:hover {
-  transform: translateY(-2px);
-}
-
-button:active {
-  transform: translateY(2px);
-  box-shadow: none;
-}
+button:hover { transform: translateY(-2px); }
+button:active { transform: translateY(2px); box-shadow: none; }
 
 table {
   width: 100%;
@@ -90,20 +84,12 @@ tr:nth-child(1) td {
   font-weight: bold;
 }
 
-/* ---------- MODE TV ---------- */
-body.tv #controls {
-  display: none;
-}
+/* ===== MODE TV ===== */
+body.tv #controls { display: none; }
+body.tv h1 { font-size: 4em; }
+body.tv table { font-size: 1.6em; }
 
-body.tv h1 {
-  font-size: 4em;
-}
-
-body.tv table {
-  font-size: 1.6em;
-}
-
-/* ---------- FLIP 7 OVERLAY ---------- */
+/* ===== FLIP 7 OVERLAY ===== */
 .flip7-overlay {
   display: none;
   position: fixed;
@@ -116,10 +102,7 @@ body.tv table {
   font-size: 4em;
   color: #033;
 }
-
-.flip7-overlay span {
-  font-size: 1.5em;
-}
+.flip7-overlay span { font-size: 1.5em; }
 </style>
 </head>
 
@@ -154,7 +137,6 @@ body.tv table {
   <button onclick="showFlip7()">FLIP 7</button>
   <button onclick="undo()">Retour arrière</button>
   <button onclick="resetGame()">Réinitialiser</button>
-
 </div>
 
 <div class="flip7-overlay" id="flip7">
@@ -218,7 +200,7 @@ function resetGame() {
   updateUI();
 }
 
-/* ---------- FLIP 7 (+93 points) ---------- */
+/* ===== FLIP 7 (+93 points) ===== */
 function showFlip7() {
   const name = playerSelect.value;
   if (!name) return;
@@ -233,15 +215,19 @@ function showFlip7() {
 
   updateUI();
 
-  setTimeout(() => {
-    overlay.style.display = "none";
-  }, 3000);
+  setTimeout(() => overlay.style.display = "none", 3000);
 }
 
-/* ---------- MODE TV ---------- */
+/* ===== MODE TV ===== */
 if (window.location.search.includes("tv")) {
   document.body.classList.add("tv");
 }
+
+/* ===== SYNCHRO AUTOMATIQUE ORDI ⇄ TV ===== */
+window.addEventListener("storage", () => {
+  players = JSON.parse(localStorage.getItem("players")) || [];
+  updateUI();
+});
 
 updateUI();
 </script>
