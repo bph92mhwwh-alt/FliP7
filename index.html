@@ -2,90 +2,95 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>FLIP 7 – Classement</title>
+<title>Jeux TV – Classement</title>
 
 <style>
-:root {
-  --bleu-clair: #6EC6E9;
-  --bleu-fonce: #1E88B5;
-  --jaune: #FFD84D;
-  --gris-clair: #f4f7fb;
+:root{
+  --bleu-nuit:#0f2747;
+  --bleu-table:#163a6b;
+  --bleu-bouton:#1f5fbf;
+  --gris-ligne:#eef2f7;
+  --or:#ffd84d;
 }
 
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, var(--bleu-clair), #B3E5FC);
-  color: #033;
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:linear-gradient(160deg,#081a33,#102b52);
+  color:white;
 }
 
-h1 {
-  text-align: center;
-  margin: 20px 0;
-  font-size: 3em;
-  color: white;
+h1{
+  text-align:center;
+  margin:20px 0;
+  font-size:3em;
+  letter-spacing:2px;
 }
 
-.container {
-  max-width: 900px;
-  margin: auto;
-  background: var(--gris-clair);
-  border-radius: 20px;
-  padding: 20px;
+.container{
+  max-width:900px;
+  margin:auto;
+  background:white;
+  color:#111;
+  border-radius:18px;
+  padding:20px;
 }
 
-button, input, select {
-  padding: 10px;
-  margin: 5px;
-  font-size: 1em;
+button,input,select{
+  padding:10px;
+  margin:5px;
+  font-size:1em;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
+button{
+  background:var(--bleu-bouton);
+  color:white;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+button:hover{opacity:0.9;}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:20px;
+  background:white;
+  color:black;
 }
 
-th {
-  background: var(--bleu-fonce);
-  color: white;
-  padding: 10px;
+th{
+  background:var(--bleu-table);
+  color:white;
+  padding:12px;
 }
 
-td {
-  background: white;
-  padding: 10px;
-  text-align: center;
+td{
+  padding:10px;
+  text-align:center;
 }
 
-tr:nth-child(1) td {
-  background: var(--jaune);
-  font-weight: bold;
+/* Lignes alternées */
+tbody tr:nth-child(even){
+  background:var(--gris-ligne);
+}
+
+/* 1er du classement */
+tbody tr:first-child td{
+  background:var(--or);
+  font-weight:bold;
 }
 
 /* MODE TV */
-body.tv #controls { display: none; }
-body.tv h1 { font-size: 4em; }
-body.tv table { font-size: 1.6em; }
-
-/* FLIP 7 */
-.flip7-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(circle, var(--jaune), var(--bleu-clair));
-  z-index: 999;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  font-size: 4em;
-}
+body.tv #controls{display:none;}
+body.tv h1{font-size:4em;}
+body.tv table{font-size:1.7em;}
 </style>
 </head>
 
 <body>
 
-<h1>FLIP 7</h1>
+<h1>JEUX TV</h1>
 
 <div class="container" id="controls">
   <input id="playerName" placeholder="Nom du joueur">
@@ -99,7 +104,7 @@ body.tv table { font-size: 1.6em; }
 
   <br><br>
 
-  <button onclick="showFlip7()">FLIP 7</button>
+  <button onclick="undo()">Annuler dernière action</button>
   <button onclick="resetGame()">Réinitialiser</button>
 </div>
 
@@ -114,80 +119,81 @@ body.tv table { font-size: 1.6em; }
   <tbody id="ranking"></tbody>
 </table>
 
-<div class="flip7-overlay" id="flip7">
-  FLIP 7
-  <div id="flip7Player"></div>
-</div>
-
 <script>
 const isTV = window.location.search.includes("tv");
-let players = JSON.parse(localStorage.getItem("players")) || [];
 
-/* ===== AFFICHAGE ===== */
-function render() {
-  const tbody = document.getElementById("ranking");
-  const select = document.getElementById("playerSelect");
-  tbody.innerHTML = "";
-  if (select) select.innerHTML = "";
+let players = JSON.parse(localStorage.getItem("players")) || [];
+let history = JSON.parse(localStorage.getItem("history")) || [];
+
+/* ===== sauvegarde ===== */
+function save(){
+  if(!isTV){
+    localStorage.setItem("players",JSON.stringify(players));
+    localStorage.setItem("history",JSON.stringify(history));
+  }
+}
+
+/* ===== affichage ===== */
+function render(){
+  const tbody=document.getElementById("ranking");
+  const select=document.getElementById("playerSelect");
+  tbody.innerHTML="";
+  if(select) select.innerHTML="";
 
   players.sort((a,b)=>b.points-a.points);
 
   players.forEach((p,i)=>{
-    tbody.innerHTML += `<tr><td>${i+1}</td><td>${p.name}</td><td>${p.points}</td></tr>`;
-    if (select) select.innerHTML += `<option>${p.name}</option>`;
+    tbody.innerHTML+=`<tr><td>${i+1}</td><td>${p.name}</td><td>${p.points}</td></tr>`;
+    if(select) select.innerHTML+=`<option>${p.name}</option>`;
   });
 }
 
-/* ===== SAUVEGARDE (animateur seulement) ===== */
-function save() {
-  if (!isTV) {
-    localStorage.setItem("players", JSON.stringify(players));
-  }
+/* ===== historique ===== */
+function snapshot(){
+  history.push(JSON.stringify(players));
+  if(history.length>50) history.shift();
 }
 
-/* ===== ACTIONS ===== */
-function addPlayer() {
-  if (!playerName.value.trim()) return;
-  players.push({name: playerName.value.trim(), points:0});
-  playerName.value = "";
+/* ===== actions ===== */
+function addPlayer(){
+  if(!playerName.value.trim()) return;
+  snapshot();
+  players.push({name:playerName.value.trim(),points:0});
+  playerName.value="";
   save(); render();
 }
 
-function addPoints() {
-  const p = players.find(x=>x.name===playerSelect.value);
-  if (!p || isNaN(points.value)) return;
-  p.points += parseInt(points.value);
-  points.value = "";
+function addPoints(){
+  const p=players.find(x=>x.name===playerSelect.value);
+  if(!p || isNaN(points.value)) return;
+  snapshot();
+  p.points+=parseInt(points.value);
+  points.value="";
   save(); render();
 }
 
-function showFlip7() {
-  const p = players.find(x=>x.name===playerSelect.value);
-  if (!p) return;
-
-  p.points += 93;
+function undo(){
+  if(history.length===0) return;
+  players=JSON.parse(history.pop());
   save(); render();
-
-  flip7Player.innerText = p.name;
-  flip7.style.display = "flex";
-  setTimeout(()=>flip7.style.display="none",3000);
 }
 
-function resetGame() {
-  if (!confirm("⚠️ Réinitialiser tout le classement ?")) return;
-  players = [];
-  localStorage.removeItem("players");
-  render();
+function resetGame(){
+  if(!confirm("⚠️ Réinitialiser tout le classement ?")) return;
+  snapshot();
+  players=[];
+  save(); render();
 }
 
-/* ===== SYNC TV ===== */
-window.addEventListener("storage", () => {
-  players = JSON.parse(localStorage.getItem("players")) || [];
+/* ===== synchro TV ===== */
+window.addEventListener("storage",()=>{
+  players=JSON.parse(localStorage.getItem("players"))||[];
+  history=JSON.parse(localStorage.getItem("history"))||[];
   render();
 });
 
-/* ===== INIT ===== */
-if (isTV) document.body.classList.add("tv");
+/* ===== init ===== */
+if(isTV) document.body.classList.add("tv");
 render();
 </script>
 
